@@ -31,6 +31,27 @@ export default class App extends React.Component<{}, State> {
 
   constructor(props) {
     super(props);
+    this.basePayerData =[{id: 1,
+                    type: "other_fhir",
+                    name: "United Health Care",
+                    "url":"http://cdex.mettles.com/payerfhir/hapi-fhir-jpaserver/fhir",
+                    "type":"hapi",
+                    "patient":"132226",
+                    client:"","authEnabled":false,
+                    "authserver":""
+                  }];
+    this.baseProviderData = [{id: 1,
+                    type: "cerner",
+                    name: "Medtronic (PCP)",
+                    patient:"690007",
+                  },
+                  {id: 2,
+                    type: "other_fhir",
+                    name: "McKesson Corp (Cardiologist)",
+                    
+                    patient:"1068",
+                  },
+                  ];
 
     this.state = {
      // "provider":{"url":"https://fhir-ehr.sandboxcerner.com/r4/0b8a0111-e8e6-4c26-a91c-5069cbc6b1ca","type":"cerner"}
@@ -39,6 +60,7 @@ export default class App extends React.Component<{}, State> {
       accessTokenExpirationDate: '',
       refreshToken: this.setRefreshToken(),
       redirectTo:"",
+      providers:""
 
     };
     this.animateState = this.animateState.bind(this);
@@ -48,19 +70,42 @@ export default class App extends React.Component<{}, State> {
     this.removeItemValue = this.removeItemValue.bind(this);
     this.doSomething = this.doSomething.bind(this);
     this.setRefreshToken = this.setRefreshToken.bind(this);
+    this.getProviderData= this.getProviderData.bind(this)
+
   }
 
 
-  getData = async (key) => {
+
+  async getProviderData(){
     try {
-      const value = await AsyncStorage.getItem(key)
+      const value = await AsyncStorage.getItem("providerData")
+      console.log("providerData :",value)
+      if(value != null){
+        let providers = JSON.parse(value)
+        this.setState({providers})
+      }
+      else{
+        // Alert.alert(
+        //   'Missing Details',
+        //   'provider information is necessary to do this action',
+        //   [
+         
+        //     {text: 'Go to Settings', onPress: () => this.props.navigation.navigate("SettingsScreen")},
+        //   ],
+        //   {cancelable: false},
+        // );
+        
+      }
       return value;
      
       } 
     catch(e) {
         // error reading value
-      }
-  }
+        console.log(e)
+     }
+   }
+
+
   componentDidMount(){
     this.removeItemValue("accessToken");
     this.removeItemValue("refreshToken");
@@ -109,7 +154,13 @@ export default class App extends React.Component<{}, State> {
       },
     SettingsScreen:SettingsScreen,
     Notifications:Notifications,
-    MedicalRecords:MedicalRecords,
+    MedicalRecords:{
+        "screen":MedicalRecords,
+        "params":{ 
+              'authorize': (item) => this.authorize(item) ,
+              'refresh': (item) => this.refresh(item) 
+            }
+          },
     UserData:{
         "screen":UserData,
         "params":{ 
@@ -130,8 +181,9 @@ export default class App extends React.Component<{}, State> {
 
 
   doSomething() {
-        console.log("doSomething has been called");
-        return "hhhh"
+    console.log("doSomething has been called");
+    return "hhhh"
+
   }
 
   AppContainer = createAppContainer(this.RootStack);
@@ -183,7 +235,9 @@ export default class App extends React.Component<{}, State> {
       scopes: ['openid', 'profile']
     };
 
-    return keycloakConf;
+   
+      return config;
+    
 
   }
 
@@ -240,7 +294,7 @@ export default class App extends React.Component<{}, State> {
   async authorize(){
      var self = this;
     try {
-      console.log("Before TOKEMMMN");
+      console.log("Before TOKEMMMN App",this.state,this.getConfig());
       const authState = await authorize(this.getConfig());
       console.log("App js TOKEMMMN");
       console.log(authState);

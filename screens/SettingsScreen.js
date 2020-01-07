@@ -43,34 +43,34 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 export  class SettingsScreen extends Component {
   constructor(props) {
     super(props);
-    this.basePayerData = {"url":"http://cdex.mettles.com/payerfhir/hapi-fhir-jpaserver/fhir",
-              "type":"hapi","patient":"137202",client:"","authEnabled":false,"authserver":""},
-    this.baseProviderData = {"url":"http://cdex.mettles.com/ehrfhir/hapi-fhir-jpaserver/fhir",
-              "type":"hapi","patient":"",client:"","authEnabled":true,"authserver":""}
-
-    this.state = {
-     // "provider":{"url":"https://fhir-ehr.sandboxcerner.com/r4/0b8a0111-e8e6-4c26-a91c-5069cbc6b1ca","type":"cerner"}
-     "provider":this.baseProviderData,
-     "payer":this.basePayerData,
-     "providers":[{id: 1,
+    this.basePayerData =[{id: 1,
+                    type: "other_fhir",
+                    name: "United Health Care",
+                    "url":"http://cdex.mettles.com/payerfhir/hapi-fhir-jpaserver/fhir",
+                    "type":"hapi",
+                    "patient":"132226",
+                    client:"","authEnabled":false,
+                    "authserver":""
+                  }];
+    this.baseProviderData = [{id: 1,
                     type: "cerner",
-                    name: "Cerner (PCP)",
+                    name: "Medtronic (PCP)",
                     patient:"690007",
                   },
                   {id: 2,
                     type: "other_fhir",
                     name: "McKesson Corp (Cardiologist)",
                     
-                    patient:"137202",
+                    patient:"1068",
                   },
-                  ],
+                  ];
 
-     "payers":[{id: 1,
-                    type: "other_fhir",
-                    name: "United Health Care",
-                   
-                    patient:"",
-                  }],
+    this.state = {
+     // "provider":{"url":"https://fhir-ehr.sandboxcerner.com/r4/0b8a0111-e8e6-4c26-a91c-5069cbc6b1ca","type":"cerner"}
+     provider:this.baseProviderData,
+     payer:this.basePayerData,
+       providers:this.baseProviderData,
+       payers:this.basePayerData,
       isLoading: false,
       selectedType: null,
       username: '',
@@ -97,12 +97,12 @@ export  class SettingsScreen extends Component {
       const payerData = await AsyncStorage.getItem("payerData")
 
       if(payerData != null){
-          let payer = JSON.parse(payerData)
-          this.setState({payer})
+          let payers = JSON.parse(payerData)
+          this.setState({payers})
       }
       if(providerData != null){
-          let provider = JSON.parse(providerData)
-          this.setState({provider})
+          let providers = JSON.parse(providerData)
+          this.setState({providers})
       }
       const dummy = await AsyncStorage.getItem("dummy")
       console.log("dummy",dummy)
@@ -116,12 +116,12 @@ export  class SettingsScreen extends Component {
    }
 
    reset() {
-    let payer = this.basePayerData
-    let provider = this.baseProviderData
-    this.setState({payer})
-    this.setState({provider})
-    AsyncStorage.setItem("payerData",JSON.stringify(payer))
-    AsyncStorage.setItem("providerData",JSON.stringify(provider))
+    let payers = this.basePayerData
+    let providers = this.baseProviderData
+    this.setState({payers})
+    this.setState({providers})
+    AsyncStorage.setItem("payerData",JSON.stringify(payers))
+    AsyncStorage.setItem("providerData",JSON.stringify(providers))
   }
 
   componentDidMount() {
@@ -164,48 +164,42 @@ export  class SettingsScreen extends Component {
 
 
 
-  onChangeText(key,text){
-    const provider = this.state.provider
-    const payer = this.state.payer
-    console.log(this.state.provider)
-    console.log(this.state.payer)
+  onChangeText(key,id,text){
+    const providers = this.state.providers
+    const payers = this.state.payers
+    console.log(this.state.providers)
+    console.log(this.state.payers)
     var splitVals = key.split("_")
-    let obj = this.state[splitVals[0]]
+    console.log(key,id,text)
     if(splitVals[0] == "provider"){
-      provider[splitVals[1]] = text;
-      this.setState({provider});
+      providers[id-1][splitVals[1]] = text;
+      this.setState({providers});
     }
     else if(splitVals[0] == "payer"){
-      payer[splitVals[1]] = text;
-      this.setState({payer});
+      payers[id-1][splitVals[1]] = text;
+      this.setState({payers});
     }
 
   }
 
   async onInputBlur(key){
     if(key == "payerData"){
-     AsyncStorage.setItem("payerData",JSON.stringify(this.state.payer))
+     AsyncStorage.setItem("payerData",JSON.stringify(this.state.payers))
     
     }
     else if(key == "providerData"){
-     AsyncStorage.setItem("providerData",JSON.stringify(this.state.provider))
+     AsyncStorage.setItem("providerData",JSON.stringify(this.state.providers))
     
     }
   }
 
   render() {
     const {
-      isLoading,
-      selectedType,
-      confirmationPassword,
-      email,
-      emailValid,
-      password,
-      passwordValid,
-      confirmationPasswordValid,
-      username,
-      usernameValid,
+
+      providers,
+      payers
     } = this.state;
+    console.log("Prooo",providers)
     return (
       <ScrollView
         keyboardShouldPersistTaps="handled"
@@ -215,16 +209,16 @@ export  class SettingsScreen extends Component {
         <View style={styles.formSetcion}>
             <Text style={styles.sectionHead}>Providers</Text>
 
-
+             <Button containerStyle={{width:"100%","marginBottom":20}} title="Add provider" />
             {
-                  this.state.providers.map((data) => {
+                  providers.map((data) => {
                       return (
-                        <View style={{paddingLeft:8,paddingRight:8,padding:10,borderWidth:0.4,marginBottom:7,borderColor:"grey"}}>
+                        <View style={{paddingLeft:10,paddingRight:8,padding:10,borderWidth:0.4,marginBottom:7,borderColor:"grey"}}>
                           <Text style={{paddingLeft:10,color:"grey",fontWeight:"bold",marginBottom:10}}>Name:</Text>
                           <Text style={{paddingLeft:10,marginBottom:15 }}>{data.name}</Text>
                           <Input
                             value={data.patient}
-                            key={data.key}
+                            key={data.id}
                             label="Patient Id"
                              inputStyle={styles.textField}
                              labelStyle={styles.textLabel}
@@ -238,16 +232,16 @@ export  class SettingsScreen extends Component {
                               leftIconContainerStyle={styles.leftIcon}
                               containerStyle={styles.textContainer}
                               onBlur={(event)=>this.onInputBlur("providerData")}
-                              onChangeText={text => this.onChangeText("provider_client",text)}
+                              onChangeText={text => this.onChangeText("provider_patient",data.id,text)}
                           />
                         </View>
                       )
                     })
                 }
-                <Button title="Add provider" />
+               
 
    
-          
+          {/*
             
             <Input
                 value={this.state.provider.url}
@@ -301,11 +295,41 @@ export  class SettingsScreen extends Component {
                   onBlur={(event)=>this.onInputBlur("providerData")}
                   onChangeText={text => this.onChangeText("provider_patient",text)}
               />
-                
+                */}
+
         </View>
 
         <View>
             <Text style={styles.sectionHead}>Payer Details</Text>
+            <Button containerStyle={{width:"100%","marginBottom":20}} title="Add payer" />
+            {
+                  this.state.payers.map((data) => {
+                      return (
+                        <View style={{paddingLeft:10,paddingRight:8,padding:10,borderWidth:0.4,marginBottom:7,borderColor:"grey"}}>
+                          <Text style={{paddingLeft:10,color:"grey",fontWeight:"bold",marginBottom:10}}>Name:</Text>
+                          <Text style={{paddingLeft:10,marginBottom:15 }}>{data.name}</Text>
+                          <Input
+                            value={data.patient}
+                            key={data.id}
+                            label="Patient Id"
+                             inputStyle={styles.textField}
+                             labelStyle={styles.textLabel}
+                             leftIcon={
+                                <Icon
+                                  name='id-card'
+                                  size={17}
+                                  color='#199'
+                                  type="font-awesome"
+                                />}
+                              leftIconContainerStyle={styles.leftIcon}
+                              containerStyle={styles.textContainer}
+                              onBlur={(event)=>this.onInputBlur("payerData")}
+                              onChangeText={text => this.onChangeText("payer_patient",data.id,text)}
+                          />
+                        </View>
+                      )
+                    })
+                }
             {/*
             <Input
                 value={this.state.payer.url}
@@ -363,13 +387,13 @@ export  class SettingsScreen extends Component {
 
             */}
           </View>
-          {/*
+          {
           <View>
                    <Button onPress={(event)=>this.reset()} title="Reset" buttonStyle={styles.reset} />
 
           </View>
 
-        */}
+        }
             
       </ScrollView>
     );
@@ -389,7 +413,6 @@ const styles = StyleSheet.create({
     padding:5,
     backgroundColor: '#fff',
     width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
   },
   sectionHead:{
     fontSize:17,

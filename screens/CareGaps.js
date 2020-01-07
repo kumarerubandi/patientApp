@@ -144,7 +144,7 @@ export  class CareGaps extends Component {
       const value = await AsyncStorage.getItem("payerData")
       console.log("payerData :",value)
       if(value != null){
-        let payer = JSON.parse(value)
+        let payer = JSON.parse(value)[0]
 
         this.setState({payer})
       }
@@ -179,15 +179,15 @@ export  class CareGaps extends Component {
         this.setState({provider})
       }
       else{
-        Alert.alert(
-          'Missing Details',
-          'provider information is necessary to do this action',
-          [
+        // Alert.alert(
+        //   'Missing Details',
+        //   'provider information is necessary to do this action',
+        //   [
          
-            {text: 'Go to Settings', onPress: () => this.props.navigation.navigate("SettingsScreen")},
-          ],
-          {cancelable: false},
-        );
+        //     {text: 'Go to Settings', onPress: () => this.props.navigation.navigate("SettingsScreen")},
+        //   ],
+        //   {cancelable: false},
+        // );
         
       }
       return value;
@@ -233,6 +233,7 @@ export  class CareGaps extends Component {
     this.setState({report})
     let payer = {"url":"http://cdex.mettles.com/payerfhir/hapi-fhir-jpaserver/fhir",
               "type":"hapi","patient":"137202",client:"","authEnabled":false,"authserver":""}
+    payer = this.state.payer
     let url =payer.url;
     url = url+"/Measure/$care-gaps?topic="+this.state.topic.split(' ').join('+')
     url = url+"&patient="+payer.patient
@@ -379,7 +380,6 @@ const styles = StyleSheet.create({
     padding:5,
     backgroundColor: '#fff',
     width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
   },
 
   reportContainer:{
